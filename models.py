@@ -6,8 +6,7 @@ class Users(Base):
     email=Column(String,unique=True,index=True)
     username=Column(String,unique=True,index=True)
     hashedpassword=Column(String)
-    is_active=Column(Boolean)
-    runs=Column(Integer)
+    is_active=Column(Boolean,default=True)
 
 class Runs(Base):
     __tablename__='runs'
@@ -16,5 +15,4 @@ class Runs(Base):
     distance_km=Column(Float)
     duration_minutes=Column(Integer)
     average_heart_rate=Column(Integer)
-    user_id=Column(Integer)
-    owner=Column(Integer,ForeignKey(users.id))
+    user_id=Column(Integer,ForeignKey("users.id"))
