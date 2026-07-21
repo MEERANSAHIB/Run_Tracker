@@ -3,8 +3,9 @@ from pydantic import BaseModel,Field
 from starlette import status
 
 from database import SessionLocal
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from .auth import get_current_user
 
 from models import Users, Runs
 
@@ -18,6 +19,7 @@ def get_db():
         db.close()
 
 db_dependency=Annotated[Session,Depends(get_db)]
+user_dependency=Annotated[dict,Depends(get_current_user)]
 
 
 
@@ -26,11 +28,12 @@ class createrun(BaseModel):
     distance_km:float=Field(gt=0)
     duration_minutes:int=Field(gt=0)
     average_heart_rate:int=Field(gt=30,lt=260)
-    user_id:int=Field(gt=0)
     
 @router.post("/createnewrun",status_code=status.HTTP_201_CREATED)
-async def createnewrun(newrun:createrun,db:db_dependency):
-    newrun_model=Runs(**newrun.model_dump())
+async def createnewrun(user:user_dependency,db:db_dependency,newrun:createrun):
+    if user is None:
+        raise HTTPException(status_code=401,detail="Can't Authorize the user")
+    newrun_model=Runs(**newrun.model_dump(),user_id=user.get('user_id'))
     db.add(newrun_model)
     db.commit()
 @router.get("/getallruns")

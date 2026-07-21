@@ -19,7 +19,7 @@ router=APIRouter(
 SECRET_KEY="9f4c2e7a81d5b3c6a0f9e4b72c1d8a5f"
 ALGORITHM="HS256"
 bcrypt_context=CryptContext(schemes=['bcrypt'],deprecated='auto')
-OAuth2_bearer=OAuth2PasswordBearer(tokenUrl='auth/token')
+OAuth2_bearer=OAuth2PasswordBearer(tokenUrl='auth/userlogin')
 def get_db():
     db=SessionLocal()
     try:
@@ -72,10 +72,10 @@ async def get_current_user(token:Annotated[str,Depends(OAuth2_bearer)]):
         username:str  = payload.get('sub')
         user_id:int = payload.get('id')
         if username is None or user_id is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, details='could not verify user')
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='could not verify user')
         return {'username':username,'user_id':user_id}
     except JWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, details='could not verify user')
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='could not verify user')
 
 
 @router.post("/userlogin",response_model=token)
@@ -84,4 +84,4 @@ async def userlogin(new_form:Annotated[OAuth2PasswordRequestForm,Depends()],db:d
         user =db.query(Users).filter(Users.username==new_form.username).first()
         token=create_access_token(user.username,user.id,timedelta(minutes=20))
         return {"access_token":token,"token_type":"bearer"}
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, details='could not verify user')
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='could not verify user')
