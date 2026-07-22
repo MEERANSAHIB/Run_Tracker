@@ -82,6 +82,6 @@ async def get_current_user(token:Annotated[str,Depends(OAuth2_bearer)]):
 async def userlogin(new_form:Annotated[OAuth2PasswordRequestForm,Depends()],db:db_dependency):
     if validate_user(new_form.username,new_form.password,db):
         user =db.query(Users).filter(Users.username==new_form.username).first()
-        token=create_access_token(user.username,user.id,timedelta(minutes=20))
+        token=create_access_token(user.username,user.id,user.role,timedelta(minutes=20))
         return {"access_token":token,"token_type":"bearer"}
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='could not verify user')
