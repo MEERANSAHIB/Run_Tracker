@@ -7,6 +7,7 @@ class Users(Base):
     username=Column(String,unique=True,index=True)
     hashedpassword=Column(String)
     is_active=Column(Boolean,default=True)
+    role=Column(String)
 
 class Runs(Base):
     __tablename__='runs'

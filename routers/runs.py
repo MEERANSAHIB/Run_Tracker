@@ -1,12 +1,10 @@
 from typing import Annotated
 from pydantic import BaseModel,Field
 from starlette import status
-
 from database import SessionLocal
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from .auth import get_current_user
-
 from models import Users, Runs
 
 router=APIRouter()
