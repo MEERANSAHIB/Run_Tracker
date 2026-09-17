@@ -10,6 +10,8 @@ from starlette import status
 
 from database import SessionLocal
 from models import Users
+from routers.user import user_dependency
+from .auth import get_current_user, bcrypt_context
 
 router=APIRouter(
     prefix="/auth",
@@ -33,6 +35,7 @@ class usercreate(BaseModel):
     username:str
     password:str
     role:str
+    phone_number:str
 
 class token(BaseModel):
     access_token:str
@@ -71,7 +74,8 @@ async def createnewuser(newuser:usercreate,db:db_dependency):
         email=newuser.email,
         username=newuser.username,
         hashedpassword=bcrypt_context.hash(newuser.password),
-        role=newuser.role
+        role=newuser.role,
+        phone_number=newuser.phone_number
     )
     db.add(newusermodel)
     db.commit()
@@ -89,3 +93,10 @@ async def userlogin(new_form:Annotated[OAuth2PasswordRequestForm,Depends()],db:d
         token=create_access_token(user.username,user.id,user.role,timedelta(minutes=20))
         return {"access_token":token,"token_type":"bearer"}
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='could not verify user')
+@router.put("/update_phone_number")
+async def change_password(user:user_dependency,db:db_dependency,phone_number):
+    user_model = db.query(Users).filter(Users.id == user.get('user_id')).first()
+    if user_model is None:
+        raise HTTPException(status_code=404, detail="User does not exist")
+    user_model.phone_number=phone_number
+    db.commit()
